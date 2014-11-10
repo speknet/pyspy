@@ -13,6 +13,7 @@ import ImageTk
 
 
 sendClick = '0'
+sendRightClick = '0'
 
 class pyspyRequestHandler(SocketServer.BaseRequestHandler):
 
@@ -49,14 +50,18 @@ class pyspyRequestHandler(SocketServer.BaseRequestHandler):
                     totaldata+=stream
         if(self.MOUSETRANSFER == True):
             global sendClick
+            global sendRightClick
             while True:
                 time.sleep(0.1)
                 if (sendClick != '0'):
                     self.request.send(sendClick)
                     sendClick = '0'
+                elif (sendRightClick != '0'):
+                    self.request.send(sendRightClick)
+                    sendRightClick = '0'
         if(self.KEYTRANSFER == True):
             while True:
-                time.sleep(0.1)
+                k=1
         
         #response = '%s: %s' % (cur_thread.getName(), data)
         #self.request.send('response')
@@ -67,7 +72,11 @@ class pyspyNetworkServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 def clicked(event):
     global sendClick
-    sendClick = str(event.x)+','+str(event.y)+'@'
+    sendClick = str(event.x)+','+str(event.y)+',1@'
+
+def rightclicked(event):
+    global sendRightClick
+    sendRightClick = str(event.x)+','+str(event.y)+',2@'
 
 def callback(*args):
     readyframe = streamvar.get()
@@ -90,7 +99,7 @@ app = Tk()
 app.title("Example")
 #app.bind('<Motion>', motion)
 app.bind("<Button-1>", clicked)
-
+app.bind("<Button-3>", rightclicked)
 streamvar = StringVar()
 streamvar.trace("w", callback)
 

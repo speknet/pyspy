@@ -7,6 +7,12 @@ if __name__ == '__main__':
     import hashlib
     import sys
 
+    def rightclickmouse(x,y):
+        print "Right click here: "+str(x),str(y)
+        win32api.SetCursorPos((x,y))
+        win32api.mouse_event(win32con.MOUSEEVENTF_RIGHTDOWN,x,y,0,0)
+        win32api.mouse_event(win32con.MOUSEEVENTF_RIGHTUP,x,y,0,0)
+
     def clickmouse(x,y):
         win32api.SetCursorPos((x,y))
         win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN,x,y,0,0)
@@ -45,10 +51,14 @@ if __name__ == '__main__':
             incomingData = s.recv(1024)
             if '@' in incomingData:
                 coord = incomingData[:incomingData.find('@')]
+                print incomingData
                 xy = coord.split(',')
-                print 'Executing click: '+xy[0]+','+xy[1]
-                clickmouse(int(xy[0]),int(xy[1]))
-                
+                if(xy[2]=='1'):
+                    clickmouse(int(xy[0]),int(xy[1]))
+                elif(xy[2]=='2'):
+                    rightclickmouse(int(xy[0]),int(xy[1]))
+                else:
+                    print 'Mouse action error: '+incomingData
 
     def keyChannel():
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -70,10 +80,10 @@ if __name__ == '__main__':
             time.sleep(0.1)
 
     threads = []
-    keyThread = threading.Thread(target=keyChannel)
-    keyThread.setDaemon(True)
-    threads.append(keyThread)
-    keyThread.start()
+    #keyThread = threading.Thread(target=keyChannel)
+    #keyThread.setDaemon(True)
+    #threads.append(keyThread)
+    #keyThread.start()
     
     mouseThread = threading.Thread(target=mouseChannel)
     mouseThread.setDaemon(True)
@@ -84,6 +94,6 @@ if __name__ == '__main__':
     streamThread.setDaemon(True)
     threads.append(streamThread)
     streamThread.start()
-    keyThread.join()
+    #keyThread.join()
     mouseThread.join()
     streamThread.join()
