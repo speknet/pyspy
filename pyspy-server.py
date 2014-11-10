@@ -11,9 +11,12 @@ import base64
 import hashlib
 import ImageTk
 
+lock = threading.Lock()
+waitkey = threading.Event()
 
 sendClick = '0'
 sendRightClick = '0'
+sendKey = '0'
 
 class pyspyRequestHandler(SocketServer.BaseRequestHandler):
 
@@ -60,11 +63,16 @@ class pyspyRequestHandler(SocketServer.BaseRequestHandler):
                     self.request.send(sendRightClick)
                     sendRightClick = '0'
         if(self.KEYTRANSFER == True):
+            global sendKey
             while True:
-                k=1
+                waitkey.wait()
+                if(sendKey != '0'):
+                    print 'Sending Key: '+sendKey
+                    self.request.send(sendKey)
+                    with lock:
+                        sendKey = '0'
+                
         
-        #response = '%s: %s' % (cur_thread.getName(), data)
-        #self.request.send('response')
         return
 
 class pyspyNetworkServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
@@ -84,8 +92,13 @@ def callback(*args):
         label.configure(image=readyframe)
         label.image = readyframe
 
+def keypress(event):
+    global sendKey
+    with lock:
+        sendKey = repr(event.char)+'!+!'.ljust(10, '#')
+        waitkey.set()
+        waitkey.clear()
 
-Online = True
 
 address = ('192.168.56.1', 4444) # let the kernel give us a port
 server = pyspyNetworkServer(address, pyspyRequestHandler)
@@ -100,6 +113,7 @@ app.title("Example")
 #app.bind('<Motion>', motion)
 app.bind("<Button-1>", clicked)
 app.bind("<Button-3>", rightclicked)
+app.bind("<Key>", keypress)
 streamvar = StringVar()
 streamvar.trace("w", callback)
 

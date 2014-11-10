@@ -51,7 +51,6 @@ if __name__ == '__main__':
             incomingData = s.recv(1024)
             if '@' in incomingData:
                 coord = incomingData[:incomingData.find('@')]
-                print incomingData
                 xy = coord.split(',')
                 if(xy[2]=='1'):
                     clickmouse(int(xy[0]),int(xy[1]))
@@ -65,10 +64,11 @@ if __name__ == '__main__':
         s.connect(('192.168.56.1', 4444))
         s.send("KEYTRANSFER")
         while True:
-            incomingData = s.recv(1024)
-            if incomingData != '':
-                print incomingData
-            s.send("HeartBeat")
+            incomingData = s.recv(10)
+            if '!+!' in incomingData:
+                keypress = incomingData[:incomingData.find('!+!')]
+                print 'Got key: '+keypress
+                    
 
     def streamChannel():
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -80,10 +80,10 @@ if __name__ == '__main__':
             time.sleep(0.1)
 
     threads = []
-    #keyThread = threading.Thread(target=keyChannel)
-    #keyThread.setDaemon(True)
-    #threads.append(keyThread)
-    #keyThread.start()
+    keyThread = threading.Thread(target=keyChannel)
+    keyThread.setDaemon(True)
+    threads.append(keyThread)
+    keyThread.start()
     
     mouseThread = threading.Thread(target=mouseChannel)
     mouseThread.setDaemon(True)
@@ -94,6 +94,6 @@ if __name__ == '__main__':
     streamThread.setDaemon(True)
     threads.append(streamThread)
     streamThread.start()
-    #keyThread.join()
+    keyThread.join()
     mouseThread.join()
     streamThread.join()
