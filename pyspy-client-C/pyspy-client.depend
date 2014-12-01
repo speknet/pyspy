@@ -1,0 +1,15 @@
+# depslib dependency file v1.0
+1416944905 source:c:\users\win7vm\desktop\pyspy-client\pyspy-client\main.c
+	<stdio.h>
+	<stdlib.h>
+	<windows.h>
+	<gdiplus.h>
+
+1416666444 source:c:\users\win7vm\desktop\pyspy-client\pyspy-client\network.c
+	<stdio.h>
+	<winsock2.h>
+
+1416673643 source:c:\users\win7vm\desktop\pyspy-client\pyspy-client\b64.c
+	<stdint.h>
+	<stdlib.h>
+
