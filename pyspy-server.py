@@ -21,56 +21,73 @@ sendKey = '0'
 class pyspyRequestHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
-        self.SCREENTRANSFER = False
-        self.MOUSETRANSFER = False
-        self.KEYTRANSFER = False
-        cur_thread = threading.currentThread()
-        selectChannel = self.request.recv(14)
-        print cur_thread.getName()+" ->> "+ selectChannel
-        if selectChannel == 'SCREENTRANSFER':
-            print cur_thread.getName() + ' SCREEN'
-            self.SCREENTRANSFER = True
-        elif selectChannel == 'MOUSETRANSFER':
-            print cur_thread.getName() + ' MOUSE'
-            self.MOUSETRANSFER = True
-        elif selectChannel == 'KEYTRANSFER':
-            print cur_thread.getName() + ' KEYBOARD'
-            self.KEYTRANSFER = True         
+
+        while True:
+            while True:
+                stream = self.request.recv(4)
+                prefix = int(''.join(reversed(stream)).encode('hex'), 16)
+                print "Got prefix "+ str(prefix)
+                break
+            maindata = ""
+            while(len(maindata)!=prefix):
+                data = self.request.recv(prefix)
+                maindata = maindata+data
+            print "Got data "+ str(len(maindata))
+            test1 = StringIO(maindata)
+            jpegdata = StringIO(base64.b64encode(maindata))
+            readyframe = PIL.Image.open(test1)
+            newIMG = ImageTk.PhotoImage(readyframe)
+            streamvar.set(newIMG)     
+        # self.SCREENTRANSFER = False
+        # self.MOUSETRANSFER = False
+        # self.KEYTRANSFER = False
+        # cur_thread = threading.currentThread()
+        # selectChannel = self.request.recv(14)
+        # print cur_thread.getName()+" ->> "+ selectChannel
+        # if selectChannel == 'SCREENTRANSFER':
+        #     print cur_thread.getName() + ' SCREEN'
+        #     self.SCREENTRANSFER = True
+        # elif selectChannel == 'MOUSETRANSFER':
+        #     print cur_thread.getName() + ' MOUSE'
+        #     self.MOUSETRANSFER = True
+        # elif selectChannel == 'KEYTRANSFER':
+        #     print cur_thread.getName() + ' KEYBOARD'
+        #     self.KEYTRANSFER = True         
         
-        if(self.SCREENTRANSFER == True):
-            totaldata = ''
-            endofdata = '@'
-            while True:
-                stream = self.request.recv(1024)
-                if(endofdata in stream):
-                    totaldata+=stream[:stream.find(endofdata)]
-                    jpegdata = StringIO(base64.b64decode(totaldata))
-                    readyframe = PIL.Image.open(jpegdata)
-                    newIMG = ImageTk.PhotoImage(readyframe)
-                    streamvar.set(newIMG)
-                    totaldata = ''
-                else:
-                    totaldata+=stream
-        if(self.MOUSETRANSFER == True):
-            global sendClick
-            global sendRightClick
-            while True:
-                time.sleep(0.1)
-                if (sendClick != '0'):
-                    self.request.send(sendClick)
-                    sendClick = '0'
-                elif (sendRightClick != '0'):
-                    self.request.send(sendRightClick)
-                    sendRightClick = '0'
-        if(self.KEYTRANSFER == True):
-            global sendKey
-            while True:
-                waitkey.wait()
-                if(sendKey != '0'):
-                    print 'Sending Key: '+sendKey
-                    self.request.send(sendKey)
-                    with lock:
-                        sendKey = '0'
+        # if(self.SCREENTRANSFER == True):
+        #     totaldata = ''
+        #     endofdata = '@'
+        #     while True:
+        #         stream = self.request.recv(1024)
+        #         if(endofdata in stream):
+        #             totaldata+=stream[:stream.find(endofdata)]
+        #             jpegdata = StringIO(base64.b64decode(totaldata))
+        #             readyframe = PIL.Image.open(jpegdata)
+        #             newIMG = ImageTk.PhotoImage(readyframe)
+        #             streamvar.set(newIMG)
+        #             totaldata = ''
+        #         else:
+        #             totaldata+=stream
+        # if(self.MOUSETRANSFER == True):
+        #     global sendClick
+        #     global sendRightClick
+        #     while True:
+        #         time.sleep(0.1)
+        #         if (sendClick != '0'):
+        #             self.request.send(sendClick)
+        #             sendClick = '0'
+        #         elif (sendRightClick != '0'):
+        #             self.request.send(sendRightClick)
+        #             sendRightClick = '0'
+        # if(self.KEYTRANSFER == True):
+        #     global sendKey
+        #     while True:
+        #         waitkey.wait()
+        #         if(sendKey != '0'):
+        #             print 'Sending Key: '+sendKey
+        #             self.request.send(sendKey)
+        #             with lock:
+        #                 sendKey = '0'
                 
         
         return
@@ -100,7 +117,7 @@ def keypress(event):
         waitkey.clear()
 
 
-address = ('192.168.56.1', 4444) # let the kernel give us a port
+address = ('192.168.56.1', 3320) # let the kernel give us a port
 server = pyspyNetworkServer(address, pyspyRequestHandler)
 
 t = threading.Thread(target=server.serve_forever)
